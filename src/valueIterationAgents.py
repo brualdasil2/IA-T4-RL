@@ -43,7 +43,21 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.values = util.Counter()  # A Counter is a dict with default 0
 
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        for i in range(iterations):
+            newValues = self.values.copy()
+            for state in mdp.getStates():
+                if mdp.isTerminal(state):
+                    newValues[state] = mdp.getReward(state, None, None)
+                else:
+                    actionValues = util.Counter()
+                    for action in mdp.getPossibleActions(state):
+                        for nextState, prob in mdp.getTransitionStatesAndProbs(state, action):
+                            actionValues[action] += prob*self.values[nextState]
+                    bestActionValue = max(actionValues.values())
+                    newValues[state] = mdp.getReward(state, None, None) + discount*bestActionValue
+            self.values = newValues.copy()
+
+
 
 
     def getValue(self, state):
@@ -57,8 +71,10 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        qValue = 0
+        for nextState, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+            qValue += prob*self.values[nextState]
+        return qValue
 
     def computeActionFromValues(self, state):
         """
@@ -69,8 +85,15 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if self.mdp.isTerminal(state):
+            return None
+        actionValues = util.Counter()
+        for action in self.mdp.getPossibleActions(state):
+            for nextState, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+                actionValues[action] += prob*self.values[nextState]
+        bestAction = actionValues.argMax()
+        return bestAction
+
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
